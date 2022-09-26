@@ -1,6 +1,7 @@
 from DbConnector import DbConnector
 from tabulate import tabulate
 
+import os
 
 class ExampleProgram:
 
@@ -118,3 +119,9 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+    for (root, dirs, files) in os.walk('dataset', topdown=True):
+        print(root)
+        print(dirs)
+        print(files)
+        print('--------------------------------')
