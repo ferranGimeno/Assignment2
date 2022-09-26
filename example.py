@@ -18,6 +18,43 @@ class ExampleProgram:
         self.cursor.execute(query % table_name)
         self.db_connection.commit()
 
+    def create_table_user(self):
+        query = """CREATE TABLE IF NOT EXISTS User (
+                   id VARCHAR(255) NOT NULL PRIMARY KEY,
+                   has_labels BOOLEAN)
+                """
+        # This adds table_name to the %s variable and executes the query
+        self.cursor.execute(query)
+        self.db_connection.commit()
+
+    def create_table_activity(self):
+        query = """CREATE TABLE IF NOT EXISTS Activity (
+                   id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+                   user_id VARCHAR(255),
+                   transportation_mode VARCHAR(255),
+                   start_date_time DATETIME,
+                   end_date_time DATETIME,
+                   FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE)
+                """
+        # This adds table_name to the %s variable and executes the query
+        self.cursor.execute(query)
+        self.db_connection.commit()
+
+    def create_table_trackpoint(self):
+        query = """CREATE TABLE IF NOT EXISTS TrackPoint (
+                   id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+                   activity_id INT,
+                   lat DOUBLE,
+                   lon DOUBLE,
+                   altitude INT,
+                   date_days DOUBLE,
+                   date_time DATETIME,
+                   FOREIGN KEY (activity_id) REFERENCES Activity(id) ON DELETE CASCADE)
+                """
+        # This adds table_name to the %s variable and executes the query
+        self.cursor.execute(query)
+        self.db_connection.commit()
+
     def insert_data(self, table_name):
         names = ['Bobby', 'Mc', 'McSmack', 'Board']
         for name in names:
@@ -57,6 +94,19 @@ def main():
         program.insert_data(table_name="Person")
         _ = program.fetch_data(table_name="Person")
         program.drop_table(table_name="Person")
+
+        program.create_table_user()
+        program.create_table_activity()
+        program.create_table_trackpoint()
+
+        _ = program.fetch_data(table_name="User")
+        _ = program.fetch_data(table_name="Activity")
+        _ = program.fetch_data(table_name="TrackPoint")
+
+        program.drop_table(table_name="TrackPoint")
+        program.drop_table(table_name="Activity")
+        program.drop_table(table_name="User")
+
         # Check that the table is dropped
         program.show_tables()
     except Exception as e:
