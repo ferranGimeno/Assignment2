@@ -66,6 +66,11 @@ class ExampleProgram:
             self.cursor.execute(query % (table_name, name))
         self.db_connection.commit()
 
+    def insert_data_trackpoint(self, row):
+        query = "INSERT INTO TrackPoint (id, activity_id, lat, lon, altitude, date_days, date_time) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        self.cursor.execute(query, row)
+        self.db_connection.commit()
+
     def fetch_data(self, table_name):
         query = "SELECT * FROM %s"
         self.cursor.execute(query % table_name)
@@ -104,16 +109,17 @@ def main():
         _ = program.fetch_data(table_name="Activity")
         _ = program.fetch_data(table_name="TrackPoint")
 
-        program.drop_table(table_name="TrackPoint")
-        program.drop_table(table_name="Activity")
-        program.drop_table(table_name="User")
-
         csv_data = csv.reader(open('dataset/Data/000/Trajectory/20081103101336.plt'))
         for i in range(6):
             next(csv_data)
 
         for row in csv_data:
+            program.insert_data_trackpoint(row)
             print(row)
+
+        program.drop_table(table_name="TrackPoint")
+        program.drop_table(table_name="Activity")
+        program.drop_table(table_name="User")
 
         # Check that the table is dropped
         program.show_tables()
