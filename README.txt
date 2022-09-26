@@ -1,5 +1,9 @@
 1. How many users, activities and trackpoints are there in the dataset (after it is
 inserted into the database).
+SELECT COUNT(*) FROM User
+SELECT COUNT(*) FROM Activity
+SELECT COUNT(*) FROM TrackPoint
+
 2. Find the average number of activities per user.
 3. Find the top 20 users with the highest number of activities.
 4. Find all users who have taken a taxi.

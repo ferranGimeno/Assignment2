@@ -2,6 +2,7 @@ from DbConnector import DbConnector
 from tabulate import tabulate
 
 import os
+import csv
 
 class ExampleProgram:
 
@@ -86,15 +87,14 @@ class ExampleProgram:
         rows = self.cursor.fetchall()
         print(tabulate(rows, headers=self.cursor.column_names))
 
-
 def main():
     program = None
     try:
         program = ExampleProgram()
-        program.create_table(table_name="Person")
-        program.insert_data(table_name="Person")
-        _ = program.fetch_data(table_name="Person")
-        program.drop_table(table_name="Person")
+        #program.create_table(table_name="Person")
+        #program.insert_data(table_name="Person")
+        #_ = program.fetch_data(table_name="Person")
+        #program.drop_table(table_name="Person")
 
         program.create_table_user()
         program.create_table_activity()
@@ -108,6 +108,13 @@ def main():
         program.drop_table(table_name="Activity")
         program.drop_table(table_name="User")
 
+        csv_data = csv.reader(open('dataset/Data/000/Trajectory/20081103101336.plt'))
+        for i in range(6):
+            next(csv_data)
+
+        for row in csv_data:
+            print(row)
+
         # Check that the table is dropped
         program.show_tables()
     except Exception as e:
@@ -120,8 +127,8 @@ def main():
 if __name__ == '__main__':
     main()
 
-    for (root, dirs, files) in os.walk('dataset', topdown=True):
-        print(root)
-        print(dirs)
-        print(files)
-        print('--------------------------------')
+    #for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
+        #print(root)
+        # print(dirs)
+        # print(files)
+        # print('--------------------------------')
