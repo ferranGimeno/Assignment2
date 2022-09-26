@@ -16,9 +16,9 @@ class DbConnector:
 
     def __init__(self,
                  HOST="tdt4225-30.idi.ntnu.no",
-                 DATABASE="DATABASE_NAME",
-                 USER="TEST_USER",
-                 PASSWORD="test123"):
+                 DATABASE="database_as2",
+                 USER="usuario",
+                 PASSWORD="12345678"):
         # Connect to the database
         try:
             self.db_connection = mysql.connect(host=HOST, database=DATABASE, user=USER, password=PASSWORD, port=3306)
