@@ -1,3 +1,16 @@
+Tables:
+Data from table User, tabulated:
+id    has_labels
+----  ------------
+
+Data from table Activity, tabulated:
+id    user_id    transportation_mode    start_date_time    end_date_time
+----  ---------  ---------------------  -----------------  ---------------
+
+Data from table TrackPoint, tabulated:
+id    activity_id    lat    lon    altitude    date_days    date_time
+----  -------------  -----  -----  ----------  -----------  -----------
+
 1. How many users, activities and trackpoints are there in the dataset (after it is
 inserted into the database).
 SELECT COUNT(*) FROM User
@@ -8,17 +21,13 @@ SELECT COUNT(*) FROM TrackPoint
 SELECT AVG(*) FROM User as u, Activity as a WHERE u.id = a.userid
 
 3. Find the top 20 users with the highest number of activities.
-SELECT x FROM x WHERE x LIMIT 20 ASC
+SELECT u.id FROM x WHERE x LIMIT 20 ASC
 
 4. Find all users who have taken a taxi.
-SELECT x FROM x WHERE x
+SELECT u.id FROM User as u, Activity as a WHERE u.id = a.user_id AND a.transportation_mode LIKE "taxi"
 
-5. Find all types of transportation modes and count how many activities that are
-tagged with these transportation mode labels. Do not count the rows where
-the mode is null.
- TDT4225 - Fall
-2022
-8
+5. Find all types of transportation modes and count how many activities that are tagged with these transportation mode labels. Do not count the rows where the mode is null.
+
 6.
     a) Find the year with the most activities.
     b) Is this also the year with most recorded hours?
@@ -30,8 +39,7 @@ the mode is null.
     ○ Remember that some altitude-values are invalid
     ○ Tip: ∑ (𝑡𝑝 𝑛. 𝑎𝑙𝑡𝑖𝑡𝑢𝑑𝑒 − 𝑡𝑝 𝑛−1. 𝑎𝑙𝑡𝑖𝑡𝑢𝑑𝑒), 𝑡𝑝 𝑛. 𝑎𝑙𝑡𝑖𝑡𝑢𝑑𝑒 > 𝑡𝑝 𝑛−1. 𝑎𝑙𝑡𝑖𝑡𝑢𝑑𝑒
 
-9. Find all users who have invalid activities, and the number of invalid activities
-per user
+9. Find all users who have invalid activities, and the number of invalid activities per user
     ○ An invalid activity is defined as an activity with consecutive trackpoints where the timestamps deviate with at least 5 minutes.
 
 10.Find the users who have tracked an activity in the Forbidden City of Beijing.
