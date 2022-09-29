@@ -22,7 +22,7 @@ class ExampleProgram:
 
     def create_table_user(self):
         query = """CREATE TABLE IF NOT EXISTS User (
-                   id VARCHAR(255) NOT NULL PRIMARY KEY,
+                   id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
                    has_labels BOOLEAN)
                 """
         # This adds table_name to the %s variable and executes the query
@@ -32,7 +32,7 @@ class ExampleProgram:
     def create_table_activity(self):
         query = """CREATE TABLE IF NOT EXISTS Activity (
                    id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
-                   user_id VARCHAR(255),
+                   user_id INT,
                    transportation_mode VARCHAR(255),
                    start_date_time DATETIME,
                    end_date_time DATETIME,
@@ -71,6 +71,11 @@ class ExampleProgram:
         self.cursor.execute(query, row)
         self.db_connection.commit()
 
+    def insert_data_user(self):
+        query = "INSERT INTO User (has_labels) VALUES (true)"
+        self.cursor.execute(query)
+        self.db_connection.commit()
+
     def fetch_data(self, table_name):
         query = "SELECT * FROM %s"
         self.cursor.execute(query % table_name)
@@ -105,17 +110,18 @@ def main():
         program.create_table_activity()
         program.create_table_trackpoint()
 
-        _ = program.fetch_data(table_name="User")
-        _ = program.fetch_data(table_name="Activity")
-        _ = program.fetch_data(table_name="TrackPoint")
-
         csv_data = csv.reader(open('dataset/Data/000/Trajectory/20081103101336.plt'))
         for i in range(6):
             next(csv_data)
+            #program.insert_data_user()
 
         for row in csv_data:
-            program.insert_data_trackpoint(row)
+            #program.insert_data_trackpoint(row)
             print(row)
+
+        _ = program.fetch_data(table_name="User")
+        _ = program.fetch_data(table_name="Activity")
+        _ = program.fetch_data(table_name="TrackPoint")
 
         program.drop_table(table_name="TrackPoint")
         program.drop_table(table_name="Activity")
