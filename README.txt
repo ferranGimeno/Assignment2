@@ -56,3 +56,6 @@ SELECT transportation_mode, count(*) from Activity GROUP BY transportation_mode
     ○ The answer should be on format (user_id, most_used_transportation_mode) sorted on user_id.
     ○ Some users may have the same number of activities tagged with e.g. walk and car. In this case it is up to you to decide which transportation mode to include in your answer (choose one).
     ○ Do not count the rows where the mode is null.
+
+    WITH Q AS (SELECT user_id, count(transportation_mode) AS most_used_transportation_mode FROM Activity GROUP BY user_id, transportation_mode)
+    SELECT TOP 1 * FROM Q ORDER BY most_used_transportation_mode;
