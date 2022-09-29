@@ -145,7 +145,6 @@ def main():
                             program.insert_data_activity(row, dir)
 
         # Check that the table is dropped
-
         _ = program.fetch_data(table_name="User")
         _ = program.fetch_data(table_name="Activity")
         _ = program.fetch_data(table_name="TrackPoint")
