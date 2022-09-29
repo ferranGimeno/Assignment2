@@ -1,3 +1,5 @@
+from wheel.wheelfile import read_csv
+
 from DbConnector import DbConnector
 from tabulate import tabulate
 
@@ -34,8 +36,8 @@ class ExampleProgram:
                    id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
                    user_id INT,
                    transportation_mode VARCHAR(255),
-                   start_date_time DATETIME,
-                   end_date_time DATETIME,
+                   start_date_time VARCHAR(255),
+                   end_date_time VARCHAR(255),
                    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE)
                 """
         # This adds table_name to the %s variable and executes the query
@@ -72,12 +74,13 @@ class ExampleProgram:
         self.db_connection.commit()
 
     def insert_data_user(self):
-        all_list = []
         labeled_list = []
+        labeled_list_str = []
         csv_data = csv.reader(open('dataset/labeled_ids.txt'))
         for row in csv_data:
             num = int(row[0])
             labeled_list.append(num)
+            labeled_list_str.append(row[0])
 
         for i in range(1, 181):
             if i in labeled_list:
@@ -85,6 +88,12 @@ class ExampleProgram:
             else:
                 query = "INSERT INTO User (has_labels) VALUES (false)"
             self.cursor.execute(query)
+        self.db_connection.commit()
+        return labeled_list_str
+
+    def insert_data_activity(self, row, user_id):
+        query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES (" + user_id + ", %s, %s, %s)"
+        self.cursor.execute(query, row)
         self.db_connection.commit()
 
     def fetch_data(self, table_name):
@@ -112,11 +121,6 @@ def main():
     program = None
     try:
         program = ExampleProgram()
-        #program.create_table(table_name="Person")
-        #program.insert_data(table_name="Person")
-        #_ = program.fetch_data(table_name="Person")
-        #program.drop_table(table_name="Person")
-
 
         program.drop_table(table_name="TrackPoint")
         program.drop_table(table_name="Activity")
@@ -126,23 +130,27 @@ def main():
         program.create_table_activity()
         program.create_table_trackpoint()
 
-        csv_data = csv.reader(open('dataset/Data/000/Trajectory/20081103101336.plt'))
-        for i in range(6):
-            next(csv_data)
+        labeled_list_str = []
+        labeled_list_str = program.insert_data_user()
 
-        program.insert_data_user()
+        for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
+            for dir in dirs:
+                if dir in labeled_list_str:
+                    print(dir)
+                    with open(root + "/" + dir + "/labels.txt") as csvfile:
+                        csvfile.readline()
+                        csv_data = csv.reader(csvfile, delimiter='\t')
+                        for row in csv_data:
+                            print(row)
+                            program.insert_data_activity(row, dir)
 
-        for row in csv_data:
-            #program.insert_data_trackpoint(row)
-            print(row)
+        # Check that the table is dropped
 
         _ = program.fetch_data(table_name="User")
         _ = program.fetch_data(table_name="Activity")
         _ = program.fetch_data(table_name="TrackPoint")
 
-        # Check that the table is dropped
         program.show_tables()
-
     except Exception as e:
         print("ERROR: Failed to use database:", e)
     finally:
@@ -153,8 +161,4 @@ def main():
 if __name__ == '__main__':
     main()
 
-    #for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
-        #print(root)
-        # print(dirs)
-        # print(files)
-        # print('--------------------------------')
+
