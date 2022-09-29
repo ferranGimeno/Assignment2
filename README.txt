@@ -27,9 +27,14 @@ SELECT u.id FROM x WHERE x LIMIT 20 ASC
 SELECT u.id FROM User as u, Activity as a WHERE u.id = a.user_id AND a.transportation_mode LIKE "taxi"
 
 5. Find all types of transportation modes and count how many activities that are tagged with these transportation mode labels. Do not count the rows where the mode is null.
+SELECT transportation_mode, count(*) from Activity GROUP BY transportation_mode
 
 6.
     a) Find the year with the most activities.
+
+        WITH Q as (SELECT YEAR(start_date_time) FROM Activity GROUP BY YEAR(start_date_time) ORDER BY YEAR(start_date_time));
+        SELECT TOP 1 * FROM Q;
+
     b) Is this also the year with most recorded hours?
 
 7. Find the total distance (in km) walked in 2008, by user with id=112.
@@ -44,6 +49,8 @@ SELECT u.id FROM User as u, Activity as a WHERE u.id = a.user_id AND a.transport
 
 10.Find the users who have tracked an activity in the Forbidden City of Beijing.
     ○ In this question you can consider the Forbidden City to have coordinates that correspond to: lat 39.916, lon 116.397.
+    WITH Q as (SELECT * FROM Activity JOIN Trackpoint ON Activity.id = Trackpoint.activity_id)
+    SELECT user_id FROM Q WHERE lat = 39.916 and lon = 116.397
 
 11.Find all users who have registered transportation_mode and their most used transportation_mode.
     ○ The answer should be on format (user_id, most_used_transportation_mode) sorted on user_id.
