@@ -72,8 +72,19 @@ class ExampleProgram:
         self.db_connection.commit()
 
     def insert_data_user(self):
-        query = "INSERT INTO User (has_labels) VALUES (true)"
-        self.cursor.execute(query)
+        all_list = []
+        labeled_list = []
+        csv_data = csv.reader(open('dataset/labeled_ids.txt'))
+        for row in csv_data:
+            num = int(row[0])
+            labeled_list.append(num)
+
+        for i in range(1, 181):
+            if i in labeled_list:
+                query = "INSERT INTO User (has_labels) VALUES (true)"
+            else:
+                query = "INSERT INTO User (has_labels) VALUES (false)"
+            self.cursor.execute(query)
         self.db_connection.commit()
 
     def fetch_data(self, table_name):
@@ -106,6 +117,11 @@ def main():
         #_ = program.fetch_data(table_name="Person")
         #program.drop_table(table_name="Person")
 
+
+        program.drop_table(table_name="TrackPoint")
+        program.drop_table(table_name="Activity")
+        program.drop_table(table_name="User")
+
         program.create_table_user()
         program.create_table_activity()
         program.create_table_trackpoint()
@@ -113,7 +129,8 @@ def main():
         csv_data = csv.reader(open('dataset/Data/000/Trajectory/20081103101336.plt'))
         for i in range(6):
             next(csv_data)
-            #program.insert_data_user()
+
+        program.insert_data_user()
 
         for row in csv_data:
             #program.insert_data_trackpoint(row)
@@ -123,12 +140,9 @@ def main():
         _ = program.fetch_data(table_name="Activity")
         _ = program.fetch_data(table_name="TrackPoint")
 
-        program.drop_table(table_name="TrackPoint")
-        program.drop_table(table_name="Activity")
-        program.drop_table(table_name="User")
-
         # Check that the table is dropped
         program.show_tables()
+
     except Exception as e:
         print("ERROR: Failed to use database:", e)
     finally:
