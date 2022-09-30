@@ -130,9 +130,9 @@ def main():
         program.create_table_activity()
         program.create_table_trackpoint()
 
-        labeled_list_str = []
-        labeled_list_str = program.insert_data_user()
 
+        labeled_list_str = program.insert_data_user()
+        #
         for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
             for dir in dirs:
                 if dir in labeled_list_str:
@@ -143,6 +143,31 @@ def main():
                         for row in csv_data:
                             print(row)
                             program.insert_data_activity(row, dir)
+
+        for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
+            for dir in dirs:
+                if dir in labeled_list_str:
+                    for (root2, dirs2, files2) in os.walk(root+"/"+dir+"/Trajectory/", topdown=True):
+                        for file2 in files2:
+                            with open(root2+"/"+file2) as csvfile:
+                                row_count = 0
+                                for row in csvfile:
+                                    row_count += 1
+                                if row_count <= 2500:
+                                    print(root2 + "/" + file2, row_count)
+
+
+
+                # print("_-------------------------")
+
+                # print(files)
+                # for file in files:
+                #     with open(root + "/" + file) as csvfile:
+                #         row_count = 0
+                #         for row in csvfile:
+                #             row_count += 1
+                #             if row_count <= 2500:
+                #                 print(root + "/" + file, row_count)
 
         # Check that the table is dropped
         _ = program.fetch_data(table_name="User")
