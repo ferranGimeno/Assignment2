@@ -91,6 +91,13 @@ class ExampleProgram:
         self.db_connection.commit()
         return labeled_list_str
 
+    def discard_lines(self, file):
+        file.readline()
+        file.readline()
+        file.readline()
+        file.readline()
+        file.readline()
+        file.readline()
     def insert_data_activity(self, row, user_id):
         query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES (" + user_id + ", %s, %s, %s)"
         self.cursor.execute(query, row)
@@ -139,28 +146,25 @@ def main():
                 print(currentFile)
                 if f[1] in labeled_list_str:
                     print(f[1])
-                    if not "Trajectory" in f:
-                        print("NO TRAJECTORY")
-                        csv_file = open(currentFile)
-                        nLines = len(list(csv_file)) + 1
-                        if nLines <= 2500:
+                    csv_file = open(currentFile)
+                    nLines = len(list(csv_file)) + 1
+                    if nLines <= 2500:
+                        #If it's Trajectory is not in the path it means it's a labels.txt
+                        if not "Trajectory" in currentFile:
                             with open(currentFile) as csvfile:
                                 csvfile.readline()
                                 csv_data = csv.reader(csvfile, delimiter='\t')
                                 for row in csv_data:
                                     print(row)
                                     program.insert_data_activity(row, f[1])
-                    else:
-                        print("TRAJECTORY")
-                        csvfile.readline()
-                        csvfile.readline()
-                        csvfile.readline()
-                        csvfile.readline()
-                        csvfile.readline()
-                        csvfile.readline()
-                        program.insert_data_trackpoint()
-
-                print("-------------")
+                        #If there is Trajectory in the path we want to save the .plt
+                        else:
+                            with open(currentFile) as csvfile:
+                                program.discard_lines(csvfile)
+                                csv_data = csv.reader(csvfile, delimiter=',')
+                                for row in csv_data:
+                                    print(row)
+                                    program.insert_data_trackpoint(row)
 
         """for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
             for dir in dirs:
