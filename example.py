@@ -132,19 +132,53 @@ def main():
 
 
         labeled_list_str = program.insert_data_user()
-        #
         for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
+            for file in files:
+                currentFile = os.path.join(root, file)
+                f = currentFile.split("\\")
+                print(currentFile)
+                if f[1] in labeled_list_str:
+                    print(f[1])
+                    if not "Trajectory" in f:
+                        print("NO TRAJECTORY")
+                        csv_file = open(currentFile)
+                        nLines = len(list(csv_file)) + 1
+                        if nLines <= 2500:
+                            with open(currentFile) as csvfile:
+                                csvfile.readline()
+                                csv_data = csv.reader(csvfile, delimiter='\t')
+                                for row in csv_data:
+                                    print(row)
+                                    program.insert_data_activity(row, f[1])
+                    else:
+                        print("TRAJECTORY")
+                        csvfile.readline()
+                        csvfile.readline()
+                        csvfile.readline()
+                        csvfile.readline()
+                        csvfile.readline()
+                        csvfile.readline()
+                        program.insert_data_trackpoint()
+
+                print("-------------")
+
+        """for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
             for dir in dirs:
                 if dir in labeled_list_str:
                     print(dir)
-                    with open(root + "/" + dir + "/labels.txt") as csvfile:
-                        csvfile.readline()
-                        csv_data = csv.reader(csvfile, delimiter='\t')
-                        for row in csv_data:
-                            print(row)
-                            program.insert_data_activity(row, dir)
+                    file = open(root + "/" + dir + "/labels.txt")
+                    nLines = len(list(file)) + 1
+                    if nLines <= 2500:
+                        with open(root + "/" + dir + "/labels.txt") as csvfile:
+                            csvfile.readline()
+                            csv_data = csv.reader(csvfile, delimiter='\t')
+                            #for row in csv_data:
+                                #print(row)
+                                #program.insert_data_activity(row, dir)
+                            print("--------------------------")"""
 
-        for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
+
+        """for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
             for dir in dirs:
                 if dir in labeled_list_str:
                     for (root2, dirs2, files2) in os.walk(root+"/"+dir+"/Trajectory/", topdown=True):
@@ -154,20 +188,7 @@ def main():
                                 for row in csvfile:
                                     row_count += 1
                                 if row_count <= 2500:
-                                    print(root2 + "/" + file2, row_count)
-
-
-
-                # print("_-------------------------")
-
-                # print(files)
-                # for file in files:
-                #     with open(root + "/" + file) as csvfile:
-                #         row_count = 0
-                #         for row in csvfile:
-                #             row_count += 1
-                #             if row_count <= 2500:
-                #                 print(root + "/" + file, row_count)
+                                    print(root2 + "/" + file2, row_count)"""
 
         # Check that the table is dropped
         _ = program.fetch_data(table_name="User")
