@@ -2,6 +2,7 @@ from wheel.wheelfile import read_csv
 
 from DbConnector import DbConnector
 from tabulate import tabulate
+from datetime import datetime
 
 import os
 import csv
@@ -69,7 +70,7 @@ class ExampleProgram:
         self.db_connection.commit()
 
     def insert_data_trackpoint(self, row):
-        query = "INSERT INTO TrackPoint (id, activity_id, lat, lon, altitude, date_days, date_time) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        query = "INSERT INTO TrackPoint (activity_id,lat, lon, altitude, date_days, date_time) VALUES ((SELECT Activity.id FROM Activity order by id desc limit 1),%s, %s, %s, %s, %s)"
         self.cursor.execute(query, row)
         self.db_connection.commit()
 
@@ -103,6 +104,12 @@ class ExampleProgram:
         self.cursor.execute(query, row)
         self.db_connection.commit()
 
+
+    def insert_act_id_into_trackpoint(self):
+        query = "INSERT INTO TrackPoint(activity_id) (SELECT Activity.id FROM Activity, TrackPoint WHERE date_time > start_date_time AND date_time < end_date_time)"
+        self.cursor.execute(query)
+        self.db_connection.commit()
+
     def fetch_data(self, table_name):
         query = "SELECT * FROM %s"
         self.cursor.execute(query % table_name)
@@ -112,6 +119,12 @@ class ExampleProgram:
         # Using tabulate to show the table in a nice way
         print("Data from table %s, tabulated:" % table_name)
         print(tabulate(rows, headers=self.cursor.column_names))
+        return rows
+
+    def fetch_data_2(self, table_name):
+        query = "SELECT * FROM %s"
+        self.cursor.execute(query % table_name)
+        rows = self.cursor.fetchall()
         return rows
 
     def drop_table(self, table_name):
@@ -145,54 +158,70 @@ def main():
                 f = currentFile.split("\\")
                 print(currentFile)
                 if f[1] in labeled_list_str:
-                    print(f[1])
-                    csv_file = open(currentFile)
-                    nLines = len(list(csv_file)) + 1
-                    if nLines <= 2500:
-                        #If it's Trajectory is not in the path it means it's a labels.txt
-                        if not "Trajectory" in currentFile:
-                            with open(currentFile) as csvfile:
-                                csvfile.readline()
-                                csv_data = csv.reader(csvfile, delimiter='\t')
-                                for row in csv_data:
-                                    print(row)
-                                    program.insert_data_activity(row, f[1])
-                        #If there is Trajectory in the path we want to save the .plt
-                        else:
+                    # print(f[1])
+
+                    if not "Trajectory" in currentFile:
+                        print(currentFile)
+                        with open(currentFile) as csvfile:
+                            csvfile.readline()
+                            csv_data = csv.reader(csvfile, delimiter='\t')
+                            for row in csv_data:
+                                print(row)
+                                program.insert_data_activity(row, f[1])
+                    else:
+                        csv_file = open(currentFile)
+                        nLines = len(list(csv_file)) + 1
+                        if nLines <= 2500:
                             with open(currentFile) as csvfile:
                                 program.discard_lines(csvfile)
                                 csv_data = csv.reader(csvfile, delimiter=',')
                                 for row in csv_data:
-                                    print(row)
-                                    program.insert_data_trackpoint(row)
+                                    date_time = row[5] + " " + row[6]
+                                    data = [row[0], row[1], row[3], row[4], date_time]
+                                    if row[3] != -777:
+                                        program.insert_data_trackpoint(data)
 
-        """for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
-            for dir in dirs:
-                if dir in labeled_list_str:
-                    print(dir)
-                    file = open(root + "/" + dir + "/labels.txt")
-                    nLines = len(list(file)) + 1
-                    if nLines <= 2500:
-                        with open(root + "/" + dir + "/labels.txt") as csvfile:
-                            csvfile.readline()
-                            csv_data = csv.reader(csvfile, delimiter='\t')
-                            #for row in csv_data:
-                                #print(row)
-                                #program.insert_data_activity(row, dir)
-                            print("--------------------------")"""
+                    #     #If there is Trajectory in the path we want to save the .plt
+                    #     else:
+                    #         with open(currentFile) as csvfile:
+                    #             program.discard_lines(csvfile)
+                    #             csv_data = csv.reader(csvfile, delimiter=',')
+                    #             for row in csv_data:
+                    #                 date_time = row[5] + " " + row[6]
+                    #                 data =  [row[0], row[1], row[3], row[4], date_time]
+                    #                 if row[3] != -777:
+                    #                     program.insert_data_trackpoint(data)
+                        # program.insert_act_id_into_trackpoint()
 
 
-        """for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
-            for dir in dirs:
-                if dir in labeled_list_str:
-                    for (root2, dirs2, files2) in os.walk(root+"/"+dir+"/Trajectory/", topdown=True):
-                        for file2 in files2:
-                            with open(root2+"/"+file2) as csvfile:
-                                row_count = 0
-                                for row in csvfile:
-                                    row_count += 1
-                                if row_count <= 2500:
-                                    print(root2 + "/" + file2, row_count)"""
+
+        # for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
+        #     for dir in dirs:
+        #         if dir in labeled_list_str:
+        #             print(dir)
+        #             file = open(root + "/" + dir + "/labels.txt")
+        #             nLines = len(list(file)) + 1
+        #             if nLines <= 2500:
+        #                 with open(root + "/" + dir + "/labels.txt") as csvfile:
+        #                     csvfile.readline()
+        #                     csv_data = csv.reader(csvfile, delimiter='\t')
+        #                     #for row in csv_data:
+        #                         #print(row)
+        #                         #program.insert_data_activity(row, dir)
+        #                     print("--------------------------")
+        #
+        #
+        # for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
+        #     for dir in dirs:
+        #         if dir in labeled_list_str:
+        #             for (root2, dirs2, files2) in os.walk(root+"/"+dir+"/Trajectory/", topdown=True):
+        #                 for file2 in files2:
+        #                     with open(root2+"/"+file2) as csvfile:
+        #                         row_count = 0
+        #                         for row in csvfile:
+        #                             row_count += 1
+        #                         if row_count <= 2500:
+        #                             print(root2 + "/" + file2, row_count)
 
         # Check that the table is dropped
         _ = program.fetch_data(table_name="User")
