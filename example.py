@@ -114,7 +114,7 @@ class ExampleProgram:
         if option == 0:
             query = "INSERT INTO TrackPoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES ("+str(activity_id)+","+row[0]+","+row[1]+","+row[2]+","+row[3]+","+row[4]+")"
         else:
-            query = "INSERT INTO TrackPoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES ("+str(activity_id)+", null, null, null, null, null)"
+            query = "INSERT INTO TrackPoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES (" + str(activity_id) + ", null, 0, 0, 0, null)"
         #query = "BULK INSERT " + file + " FROM 'C:\Demos\sample-csv-file-for-demo.csv' WITH (FIELDTERMINATOR =' ', ROWTERMINATOR ='\n');"
         self.cursor.execute(query)
         self.db_connection.commit()
@@ -251,22 +251,25 @@ def main():
                         except Exception:
                             pass
 
-                    with open(currentFile) as csvfile:
-                        csvfile.readline()
-                        csvfile.readline()
-                        csvfile.readline()
-                        csvfile.readline()
-                        csvfile.readline()
-                        csvfile.readline()
-                        csv_data = csv.reader(csvfile, delimiter=',')
-                        for row in csv_data:
-                            print(row)
-                            user = get_user(currentFile)
-                            if user in labeled_list_str:
-                                program.insert_data_trackpoint_test(activity_id, 0, row)
-                            else:
-                                program.insert_data_trackpoint_test(activity_id, 1, row)
-                    activity_id = activity_id + 1
+                        with open(currentFile) as csvfile:
+                            csvfile.readline()
+                            csvfile.readline()
+                            csvfile.readline()
+                            csvfile.readline()
+                            csvfile.readline()
+                            csvfile.readline()
+                            csv_data = csv.reader(csvfile, delimiter=',')
+                            for row in csv_data:
+                                print(row)
+                                user = get_user(currentFile)
+                                if user in labeled_list_str:
+                                    #program.insert_data_trackpoint(row)
+                                    #program.insert_data_trackpoint_test(activity_id, 0)
+                                    pass
+                                else:
+                                    pass
+                                    #program.insert_data_trackpoint_test(activity_id, 1)
+                        activity_id = activity_id + 1
 
         return
 
