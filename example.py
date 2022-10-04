@@ -36,9 +36,9 @@ class ExampleProgram:
         query = """CREATE TABLE IF NOT EXISTS Activity (
                    id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
                    user_id INT,
-                   transportation_mode VARCHAR(255),
-                   start_date_time VARCHAR(255),
-                   end_date_time VARCHAR(255),
+                   transportation_mode VARCHAR(255) DEFAULT NULL,
+                   start_date_time VARCHAR(255) DEFAULT NULL,
+                   end_date_time VARCHAR(255) DEFAULT NULL,
                    FOREIGN KEY (user_id) REFERENCES User(id) ON DELETE CASCADE)
                 """
         # This adds table_name to the %s variable and executes the query
@@ -106,11 +106,13 @@ class ExampleProgram:
 
     def insert_data_activity_test(self, user_id):
         query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES (" + user_id + ", '0', '0', '0')"
+        #query = "BULK INSERT " + file + " FROM 'C:\Demos\sample-csv-file-for-demo.csv' WITH (FIELDTERMINATOR =' ', ROWTERMINATOR ='\n');"
         self.cursor.execute(query)
         self.db_connection.commit()
 
     def insert_data_trackpoint_test(self, activity_id):
         query = "INSERT INTO TrackPoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES (" + str(activity_id) + ", 0, 0, 0, 0, 'dsds')"
+        #query = "BULK INSERT " + file + " FROM 'C:\Demos\sample-csv-file-for-demo.csv' WITH (FIELDTERMINATOR =' ', ROWTERMINATOR ='\n');"
         self.cursor.execute(query)
         self.db_connection.commit()
 
@@ -183,15 +185,73 @@ def main():
         program.create_table_trackpoint()
 
         labeled_list_str = program.insert_data_user()
+        found_plts = []
         activity_id = 1
 
-        try:
-            open("fscsd.txt")
-        except Exception:
-            pass
-
-
         for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
+            for file in files:
+                #Debugging pourposes
+                if file in "dataset/Data/010/Trajectory/20080926104408.plt":
+                    return
+                currentFile = os.path.join(root, file)
+                f = currentFile.split("\\")
+                print(currentFile)
+                #Not a Trajectory directory
+                if not "Trajectory" in f:
+                    with open(currentFile) as csvfile:
+                        csvfile.readline()
+                        csv_data = csv.reader(csvfile, delimiter='\t')
+                        for row in csv_data:
+                            print(row)
+                            start_time = row[0].replace('/', '').replace(':', '').replace(' ', '') + ".plt"
+                            try:
+                                with open(os.path.join(root + "/Trajectory/", start_time).replace("\\", "/"), 'r') as f:
+                                    for line in f:
+                                        pass
+                                    last_line = line
+                                print(start_time)
+                                path = os.path.join(root + "/Trajectory/", start_time)
+                                last = last_line.split(",")
+                                end_time = last[5] + " " + last[6]
+                                end_time = end_time.replace("\n", "").replace("-", "/")
+                                print("End:", end_time, ", Row:", row[1], "#")
+                                if end_time == row[1]:
+                                    print("Found")
+                                    found_plts.append(path)
+                            except Exception:
+                                pass
+
+                            #Abrir fichero .plt con el nombre de start_time
+                            #Si coincide, abrir y si existe, mirar la ultima linea
+                            #Si coincide, se reabre el fichero y se guarda primero la Activity y se guardan los TrakPoint
+                            #print(row)
+                            #program.insert_data_activity(row, f[1])
+                #Thats a Trajectory directory
+                else:
+                    if currentFile not in found_plts:
+                        print(currentFile)
+                    """program.insert_data_activity_test(f[1])
+                    csv_file = open(currentFile)
+                    nLines = len(list(csv_file)) - 6
+                    print(nLines)
+                    if nLines <= 2500:
+                        print("Reading")
+                        with open(currentFile) as csvfile:
+                            csvfile.readline()
+                            csvfile.readline()
+                            csvfile.readline()
+                            csvfile.readline()
+                            csvfile.readline()
+                            csvfile.readline()
+                            csv_data = csv.reader(csvfile, delimiter=',')
+                            for row in csv_data:
+                                #print(row)
+                                #print(activity_id)
+                                #program.insert_data_trackpoint(row)
+                                program.insert_data_trackpoint_test(activity_id)
+                    activity_id = activity_id + 1"""
+
+        """for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
             for file in files:
                 currentFile = os.path.join(root, file)
                 f = currentFile.split("\\")
@@ -214,7 +274,7 @@ def main():
                                 #program.insert_data_activity(row, f[1])
                     #Thats a Trajectory directory
                     else:
-                        """program.insert_data_activity_test(f[1])
+                        program.insert_data_activity_test(f[1])
                         csv_file = open(currentFile)
                         nLines = len(list(csv_file)) - 6
                         print(nLines)
