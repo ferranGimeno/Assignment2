@@ -2,7 +2,7 @@ from wheel.wheelfile import read_csv
 
 from DbConnector import DbConnector
 from tabulate import tabulate
-from datetime import datetime
+import pandas
 
 import os
 import csv
@@ -140,9 +140,11 @@ class ExampleProgram:
     def show_possible_plts(self, table):
         possible_plts = []
         for i in range(len(table)):
-            plt_name = table[i][3][0:4] + table[i][3][5:7] + table[i][3][8:10] + table[i][3][11:13] + \
-                       table[i][3][14:16] + table[i][3][17:19] + ".plt"
-            possible_plts.append([plt_name, i+1])
+            if table[i][3] is not None:
+                plt_name = table[i][3][0:4] + table[i][3][5:7] + table[i][3][8:10] + table[i][3][11:13] + \
+                           table[i][3][14:16] + table[i][3][17:19] + ".plt"
+                possible_plts.append([plt_name, i+1])
+
         return possible_plts
 
     def show_real_plts(self, possible_plts, dir):
@@ -168,14 +170,33 @@ class ExampleProgram:
             query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES " + str_tuple_1
         elif str_tuple[len(str_tuple_1)] == ",":
             query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES " + str_tuple_2
-        print(query)
+        # print(query)
         self.cursor.execute(query)
         self.db_connection.commit()
 
 
     def insert_not_labeled_data_activity_tuple(self):
         query = "INSERT INTO Activity (user_id) (SELECT id FROM User WHERE has_labels = 0)"
-        print(query)
+        # print(query)
+        self.cursor.execute(query)
+        self.db_connection.commit()
+
+
+    def insert_data_trackpoint_tuple(self, tuple):
+        str_tuple = str(tuple)
+        str_tuple_1 = str_tuple[1:len(str_tuple)-1]
+        str_tuple_2 = str_tuple[1:len(str_tuple)-2]
+        if str_tuple[len(str_tuple_1)] == ")":
+            query = "INSERT INTO TrackPoint (lat,lon,altitude,date_days,date_time) VALUES " + str_tuple_1
+        elif str_tuple[len(str_tuple_1)] == ",":
+            query = "INSERT INTO TrackPoint (lat,lon,altitude,date_days,date_time) VALUES " + str_tuple_2
+        # print(query)
+        self.cursor.execute(query)
+        self.db_connection.commit()
+
+    def update_trackpoint_tuple(self):
+        query = "UPDATE TrackPoint, Activity SET TrackPoint.activity_id = Activity.id WHERE TrackPoint.date_time < Activity.end_date_time and TrackPoint.date_time > Activity.start_date_time"
+        # print(query)
         self.cursor.execute(query)
         self.db_connection.commit()
 
@@ -184,9 +205,11 @@ def main():
     try:
         program = ExampleProgram()
 
-        program.drop_table(table_name="TrackPoint")
-        program.drop_table(table_name="Activity")
         program.drop_table(table_name="User")
+        program.drop_table(table_name="Activity")
+        program.drop_table(table_name="TrackPoint")
+
+
 
         program.create_table_user()
         program.create_table_activity()
@@ -207,9 +230,27 @@ def main():
                             csv_tuple = tuple(csv_list)
                             program.insert_labeled_data_activity_tuple(csv_tuple)
 
-
-
         program.insert_not_labeled_data_activity_tuple()
+
+
+
+        for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
+            for file in files:
+                if "Trajectory" in root and "140" in root:
+                    csv_file = open(root + "/" + file)
+                    nLines = len(list(csv_file)) + 1
+                    if nLines <= 2500:
+                        with open(root + "/" + file) as fil:
+                            print(root + "/" + file)
+                            program.discard_lines(fil)
+                            csv_data = csv.reader(fil, delimiter=',')
+                            csv_list = [tuple([line[0], line[1], line[3], line[4],line[5]+" "+line[6]]) for line in csv_data]
+                            csv_tuple = tuple(csv_list)
+                            program.insert_data_trackpoint_tuple(csv_tuple)
+
+        program.update_trackpoint_tuple()
+
+
 
 
 
@@ -312,9 +353,9 @@ def main():
 
 
         # Check that the table is dropped
-        _ = program.fetch_data(table_name="User")
+        # _ = program.fetch_data(table_name="User")
         _ = program.fetch_data(table_name="Activity")
-        # _ = program.fetch_data(table_name="TrackPoint")
+        _ = program.fetch_data(table_name="TrackPoint")
 
         program.show_tables()
     except Exception as e:
