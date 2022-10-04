@@ -110,8 +110,11 @@ class ExampleProgram:
         self.cursor.execute(query, row)
         self.db_connection.commit()
 
-    def insert_data_trackpoint_test(self, activity_id):
-        query = "INSERT INTO TrackPoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES (" + str(activity_id) + ", 0, 0, 0, 0, 'dsds')"
+    def insert_data_trackpoint_test(self, activity_id, option, row):
+        if option == 0:
+            query = "INSERT INTO TrackPoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES ("+str(activity_id)+","+row[0]+","+row[1]+","+row[2]+","+row[3]+","+row[4]+")"
+        else:
+            query = "INSERT INTO TrackPoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES ("+str(activity_id)+", null, null, null, null, null)"
         #query = "BULK INSERT " + file + " FROM 'C:\Demos\sample-csv-file-for-demo.csv' WITH (FIELDTERMINATOR =' ', ROWTERMINATOR ='\n');"
         self.cursor.execute(query)
         self.db_connection.commit()
@@ -186,6 +189,9 @@ def get_user(param):
     user = param.replace("\\", "/").split("/")
     return user[2]
 
+def check_lines(param, margin):
+    pass
+
 def main():
     program = None
     try:
@@ -214,7 +220,9 @@ def main():
                 f = currentFile.split("\\")
                 # Not a Trajectory directory
                 if "Trajectory" in f:
-                    try:
+                    csv_file = open(currentFile)
+                    nLines = len(list(csv_file)) - 6
+                    if nLines <= 2500:
                         filename = currentFile.replace("\\", "/").split("/")
                         start_time = filename[4]
                         start_time = start_time[:4] + "/" +start_time[4:]
@@ -223,48 +231,42 @@ def main():
                         start_time = start_time[:13] + ':' + start_time[13:]
                         start_time = start_time[:16] + ':' + start_time[16:]
                         start_time = start_time.replace(".plt", "")
-                        #print("Start:", start_time)
                         with open(currentFile, "r") as trackpoints:
                             for line in trackpoints:
                                 pass
-                        last = line
-                        last_line = last.split(",")
+                        last_line = line.split(",")
                         end_time = last_line[5] + " " + last_line[6]
                         end_time = end_time.replace("\n", "").replace("-", "/")
-                        #print("End:", end_time)
                         try:
                             line = check_labels(root, start_time, end_time)
-                            print(line)
                             if line != -1:
-                                print("Found")
                                 with open(os.path.join(root).replace("Trajectory", "labels.txt"), "r") as csvfile:
                                     csv_data = csv.reader(csvfile, delimiter='\t')
                                     user_id = get_user(os.path.join(root))
                                     index = 1
                                     for row in csv_data:
                                         if index == line:
-                                            print("FOund line:", row)
                                             program.insert_data_activity_test(user_id, row)
                                         index = index + 1
-                        except Exception as e:
-                            print(e)
+                        except Exception:
                             pass
 
-                        with open(os.path.join(root + "/Trajectory/", ).replace("\\", "/"), 'r') as f:
-                            for line in f:
-                                pass
-                            last_line = line
-                        print(start_time)
-                        path = os.path.join(root + "/Trajectory/", start_time)
-                        last = last_line.split(",")
-                        end_time = last[5] + " " + last[6]
-                        end_time = end_time.replace("\n", "").replace("-", "/")
-                        print("End:", end_time, ", Row:", row[1], "#")
-                        if end_time == row[1]:
-                            print("Found")
-                            found_plts.append(path)
-                    except Exception:
-                        pass
+                    with open(currentFile) as csvfile:
+                        csvfile.readline()
+                        csvfile.readline()
+                        csvfile.readline()
+                        csvfile.readline()
+                        csvfile.readline()
+                        csvfile.readline()
+                        csv_data = csv.reader(csvfile, delimiter=',')
+                        for row in csv_data:
+                            print(row)
+                            user = get_user(currentFile)
+                            if user in labeled_list_str:
+                                program.insert_data_trackpoint_test(activity_id, 0, row)
+                            else:
+                                program.insert_data_trackpoint_test(activity_id, 1, row)
+                    activity_id = activity_id + 1
 
         return
 
