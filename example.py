@@ -172,7 +172,7 @@ class ExampleProgram:
         self.cursor.execute(query)
         self.db_connection.commit()
 
-    def insert_not_labeled_data_activity_tuple(self, user_id):
+    def insert_not_labeled_data_activity_tuple(self):
         query = "INSERT INTO Activity (user_id) (SELECT id FROM User WHERE has_labels = 0)"
         print(query)
         self.cursor.execute(query)
@@ -208,7 +208,7 @@ def main():
 
 
 
-        program.insert_not_labeled_data_activity_tuple(dir)
+        program.insert_not_labeled_data_activity_tuple()
 
 
 
