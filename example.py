@@ -223,6 +223,7 @@ def main():
                     csv_file = open(currentFile)
                     nLines = len(list(csv_file)) - 6
                     if nLines <= 2500:
+                        print("hola")
                         filename = currentFile.replace("\\", "/").split("/")
                         start_time = filename[4]
                         start_time = start_time[:4] + "/" +start_time[4:]
