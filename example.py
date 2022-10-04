@@ -201,7 +201,6 @@ def main():
                             csv_list = [(dir,) + tuple(line) for line in csv_data]
                             csv_tuple = tuple(csv_list)
                             program.insert_data_activity_tuple(csv_tuple, dir)
-
                     # else:
                     #     csv_tuple = ((dir,) +("Null", "Null", "Null"))
                     #     program.insert_data_activity_tuple(csv_tuple, dir)
