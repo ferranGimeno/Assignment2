@@ -107,6 +107,7 @@ class ExampleProgram:
     def insert_data_activity_test(self, user_id, row):
         query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES (" + user_id + ", %s, %s, %s)"
         #query = "BULK INSERT " + file + " FROM 'C:\Demos\sample-csv-file-for-demo.csv' WITH (FIELDTERMINATOR =' ', ROWTERMINATOR ='\n');"
+        print(query)
         self.cursor.execute(query, row)
         self.db_connection.commit()
 
@@ -206,8 +207,8 @@ def main():
         program.create_table_trackpoint()
 
         labeled_list_str = program.insert_data_user()
-        found_plts = []
         activity_id = 1
+        default = ["null", "null", "null"]
 
         for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
             for file in files:
@@ -237,9 +238,10 @@ def main():
                         last_line = line.split(",")
                         end_time = last_line[5] + " " + last_line[6]
                         end_time = end_time.replace("\n", "").replace("-", "/")
+                        user_id = get_user(os.path.join(root))
+                        print(user_id)
                         try:
                             line = check_labels(root, start_time, end_time)
-                            user_id = get_user(os.path.join(root))
                             if line != -1:
                                 with open(os.path.join(root).replace("Trajectory", "labels.txt"), "r") as csvfile:
                                     csv_data = csv.reader(csvfile, delimiter='\t')
@@ -250,10 +252,9 @@ def main():
                                         index = index + 1
                             else:
                                 print("ERROR")
-                                row = ["null", "null", "null"]
-                                program.insert_data_activity_test(user, row)
-
+                                program.insert_data_activity_test(user_id, default)
                         except Exception:
+                            #program.insert_data_activity_test(user_id, default)
                             pass
 
                         with open(currentFile) as csvfile:
