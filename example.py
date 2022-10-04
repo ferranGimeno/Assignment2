@@ -53,7 +53,7 @@ class ExampleProgram:
                    lon DOUBLE,
                    altitude INT,
                    date_days DOUBLE,
-                   date_time DATETIME,
+                   date_time VARCHAR(255),
                    FOREIGN KEY (activity_id) REFERENCES Activity(id) ON DELETE CASCADE)
                 """
         # This adds table_name to the %s variable and executes the query
@@ -73,7 +73,7 @@ class ExampleProgram:
         query = "INSERT INTO TrackPoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES (%s, %s, %s, %s, %s, %s)"
         self.cursor.execute(query, row)
         self.db_connection.commit()
-    #     (SELECT Activity.id FROM Activity order by id desc limit 1),
+
     def insert_data_user(self):
         labeled_list = []
         labeled_list_str = []
@@ -104,6 +104,15 @@ class ExampleProgram:
         self.cursor.execute(query, row)
         self.db_connection.commit()
 
+    def insert_data_activity_test(self, user_id):
+        query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES (" + user_id + ", '0', '0', '0')"
+        self.cursor.execute(query)
+        self.db_connection.commit()
+
+    def insert_data_trackpoint_test(self, activity_id):
+        query = "INSERT INTO TrackPoint (activity_id, lat, lon, altitude, date_days, date_time) VALUES (" + str(activity_id) + ", 0, 0, 0, 0, 'dsds')"
+        self.cursor.execute(query)
+        self.db_connection.commit()
 
     def insert_act_id_into_trackpoint(self):
         query = "INSERT INTO TrackPoint(activity_id) (SELECT Activity.id FROM Activity, TrackPoint WHERE date_time > start_date_time AND date_time < end_date_time)"
@@ -114,8 +123,8 @@ class ExampleProgram:
         query = "SELECT * FROM %s"
         self.cursor.execute(query % table_name)
         rows = self.cursor.fetchall()
-        print("Data from table %s, raw format:" % table_name)
-        print(rows)
+        #print("Data from table %s, raw format:" % table_name)
+        #print(rows)
         # Using tabulate to show the table in a nice way
         print("Data from table %s, tabulated:" % table_name)
         print(tabulate(rows, headers=self.cursor.column_names))
@@ -173,10 +182,54 @@ def main():
         program.create_table_activity()
         program.create_table_trackpoint()
 
-
         labeled_list_str = program.insert_data_user()
+        activity_id = 1
+
+        try:
+            open("fscsd.txt")
+        except Exception:
+            print("error")
+
 
         for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
+            for file in files:
+                currentFile = os.path.join(root, file)
+                f = currentFile.split("\\")
+                #print(currentFile)
+                if f[1] in labeled_list_str:
+                    print(f[1])
+                    #Not a Trajectory directory
+                    if not "Trajectory" in f:
+                        """with open(currentFile) as csvfile:
+                            csvfile.readline()
+                            csv_data = csv.reader(csvfile, delimiter='\t')
+                            for row in csv_data:
+                                print(row)
+                                program.insert_data_activity(row, f[1])"""
+                    #Thats a Trajectory directory
+                    else:
+                        program.insert_data_activity_test(f[1])
+                        csv_file = open(currentFile)
+                        nLines = len(list(csv_file)) - 6
+                        print(nLines)
+                        if nLines <= 2500:
+                            print("Reading")
+                            with open(currentFile) as csvfile:
+                                csvfile.readline()
+                                csvfile.readline()
+                                csvfile.readline()
+                                csvfile.readline()
+                                csvfile.readline()
+                                csvfile.readline()
+                                csv_data = csv.reader(csvfile, delimiter=',')
+                                for row in csv_data:
+                                    #print(row)
+                                    #print(activity_id)
+                                    #program.insert_data_trackpoint(row)
+                                    program.insert_data_trackpoint_test(activity_id)
+                        activity_id = activity_id + 1
+
+        """for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
             for dir in dirs:
                 if dir in labeled_list_str:
                     root_labels = root+"/"+dir+"/labels.txt"
@@ -185,9 +238,9 @@ def main():
                         csv_data = csv.reader(csvfile, delimiter='\t')
                         for row in csv_data:
                             print(row)
-                            program.insert_data_activity(row, dir)
+                            program.insert_data_activity(row, dir)"""
 
-        activity = program.fetch_data_2(table_name="Activity")
+        """activity = program.fetch_data_2(table_name="Activity")
         possible_plts = program.show_possible_plts(activity)
         for i in range(1):
             dir = labeled_list_str[i]
@@ -205,13 +258,10 @@ def main():
                             date_time = row[5] + " " + row[6]
                             data = [real_plts[j][1], row[0], row[1], row[3], row[4], date_time]
                             if row[3] != -777:
-                                program.insert_data_trackpoint(data)
+                                program.insert_data_trackpoint(data)"""
 
 
-
-
-        """
-        for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
+        """for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
             for file in files:
                 currentFile = os.path.join(root, file)
                 f = currentFile.split("\\")
@@ -238,8 +288,8 @@ def main():
                                     date_time = row[5] + " " + row[6]
                                     data = [row[0], row[1], row[3], row[4], date_time]
                                     if row[3] != -777:
-                                        program.insert_data_trackpoint(data)
-                                        
+                                        program.insert_data_trackpoint(data)""
+
         """
 
                     #     #If there is Trajectory in the path we want to save the .plt
@@ -291,6 +341,7 @@ def main():
         _ = program.fetch_data(table_name="TrackPoint")
 
         program.show_tables()
+
     except Exception as e:
         print("ERROR: Failed to use database:", e)
     finally:
