@@ -223,7 +223,6 @@ def main():
                     csv_file = open(currentFile)
                     nLines = len(list(csv_file)) - 6
                     if nLines <= 2500:
-                        print("hola")
                         filename = currentFile.replace("\\", "/").split("/")
                         start_time = filename[4]
                         start_time = start_time[:4] + "/" +start_time[4:]
@@ -240,15 +239,20 @@ def main():
                         end_time = end_time.replace("\n", "").replace("-", "/")
                         try:
                             line = check_labels(root, start_time, end_time)
+                            user_id = get_user(os.path.join(root))
                             if line != -1:
                                 with open(os.path.join(root).replace("Trajectory", "labels.txt"), "r") as csvfile:
                                     csv_data = csv.reader(csvfile, delimiter='\t')
-                                    user_id = get_user(os.path.join(root))
                                     index = 1
                                     for row in csv_data:
                                         if index == line:
                                             program.insert_data_activity_test(user_id, row)
                                         index = index + 1
+                            else:
+                                print("ERROR")
+                                row = ["null", "null", "null"]
+                                program.insert_data_activity_test(user, row)
+
                         except Exception:
                             pass
 
@@ -261,7 +265,6 @@ def main():
                             csvfile.readline()
                             csv_data = csv.reader(csvfile, delimiter=',')
                             for row in csv_data:
-                                print(row)
                                 user = get_user(currentFile)
                                 if user in labeled_list_str:
                                     #program.insert_data_trackpoint(row)
