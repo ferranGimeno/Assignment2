@@ -160,6 +160,20 @@ class ExampleProgram:
 
         return real_plts
 
+    def insert_data_activity_tuple(self, tuple, user_id):
+        str_tuple = str(tuple)
+        str_tuple_1 = str_tuple[1:len(str_tuple)-1]
+        str_tuple_2 = str_tuple[1:len(str_tuple)-2]
+        if str_tuple[len(str_tuple_1)] == ")":
+            query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES " + str_tuple_1
+        elif str_tuple[len(str_tuple_1)] == ",":
+            query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES " + str_tuple_2
+        else:
+            query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES ((SELECT id from User where has_labels = 0 order by id limit 1), Null, Null, Null)"
+        # print(query)
+        self.cursor.execute(query)
+        self.db_connection.commit()
+
 def main():
     program = None
     try:
@@ -178,34 +192,38 @@ def main():
 
         for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
             for dir in dirs:
-                if dir in labeled_list_str:
-                    root_labels = root+"/"+dir+"/labels.txt"
-                    with open(root_labels) as csvfile:
-                        csvfile.readline()
-                        csv_data = csv.reader(csvfile, delimiter='\t')
-                        for row in csv_data:
-                            print(row)
-                            program.insert_data_activity(row, dir)
+                if "Trajectory" not in dir:
+                    if dir in labeled_list_str:
+                        root_labels = root+"/"+ dir +"/labels.txt"
+                        with open(root_labels) as csvfile:
+                            csvfile.readline()
+                            csv_data = csv.reader(csvfile, delimiter='\t')
+                            csv_list = [(dir,) + tuple(line) for line in csv_data]
+                            csv_tuple = tuple(csv_list)
+                            program.insert_data_activity_tuple(csv_tuple, dir)
+                    # else:
+                    #     csv_tuple = ((dir,) +("Null", "Null", "Null"))
+                    #     program.insert_data_activity_tuple(csv_tuple, dir)
 
-        activity = program.fetch_data_2(table_name="Activity")
-        possible_plts = program.show_possible_plts(activity)
-        for i in range(1):
-            dir = labeled_list_str[i]
-            real_plts = program.show_real_plts(possible_plts, dir)
-            for j in range(len(real_plts)):
-                root_plt = "dataset/Data/"+dir+"/Trajectory/" + real_plts[j][0]
-                csv_file = open(root_plt)
-                nLines = len(list(csv_file)) + 1
-                if nLines <= 700:
-                    print(root_plt)
-                    with open(root_plt) as csvfile:
-                        program.discard_lines(csvfile)
-                        csv_data = csv.reader(csvfile, delimiter=',')
-                        for row in csv_data:
-                            date_time = row[5] + " " + row[6]
-                            data = [real_plts[j][1], row[0], row[1], row[3], row[4], date_time]
-                            if row[3] != -777:
-                                program.insert_data_trackpoint(data)
+        # activity = program.fetch_data_2(table_name="Activity")
+        # possible_plts = program.show_possible_plts(activity)
+        # for i in range(1):
+        #     dir = labeled_list_str[i]
+        #     real_plts = program.show_real_plts(possible_plts, dir)
+        #     for j in range(len(real_plts)):
+        #         root_plt = "dataset/Data/"+dir+"/Trajectory/" + real_plts[j][0]
+        #         csv_file = open(root_plt)
+        #         nLines = len(list(csv_file)) + 1
+        #         if nLines <= 700:
+        #             print(root_plt)
+        #             with open(root_plt) as csvfile:
+        #                 program.discard_lines(csvfile)
+        #                 csv_data = csv.reader(csvfile, delimiter=',')
+        #                 for row in csv_data:
+        #                     date_time = row[5] + " " + row[6]
+        #                     data = [real_plts[j][1], row[0], row[1], row[3], row[4], date_time]
+        #                     if row[3] != -777:
+        #                         program.insert_data_trackpoint(data)
 
 
 
@@ -288,7 +306,7 @@ def main():
         # Check that the table is dropped
         _ = program.fetch_data(table_name="User")
         _ = program.fetch_data(table_name="Activity")
-        _ = program.fetch_data(table_name="TrackPoint")
+        # _ = program.fetch_data(table_name="TrackPoint")
 
         program.show_tables()
     except Exception as e:
