@@ -104,10 +104,10 @@ class ExampleProgram:
         self.cursor.execute(query, row)
         self.db_connection.commit()
 
-    def insert_data_activity_test(self, user_id):
-        query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES (" + user_id + ", '0', '0', '0')"
+    def insert_data_activity_test(self, user_id, row):
+        query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES (" + user_id + ", %s, %s, %s)"
         #query = "BULK INSERT " + file + " FROM 'C:\Demos\sample-csv-file-for-demo.csv' WITH (FIELDTERMINATOR =' ', ROWTERMINATOR ='\n');"
-        self.cursor.execute(query)
+        self.cursor.execute(query, row)
         self.db_connection.commit()
 
     def insert_data_trackpoint_test(self, activity_id):
@@ -171,6 +171,21 @@ class ExampleProgram:
 
         return real_plts
 
+def check_labels(root, start_time, end_time):
+    index = 1
+    with open(os.path.join(root).replace("Trajectory", "labels.txt"), "r") as labels:
+        for label in labels:
+            if str(start_time) in label and end_time in label:
+                print("label:", label)
+                print("Start:", start_time, "End:", end_time)
+                return index
+            index = index + 1
+        return -1
+
+def get_user(param):
+    user = param.replace("\\", "/").split("/")
+    return user[2]
+
 def main():
     program = None
     try:
@@ -187,6 +202,71 @@ def main():
         labeled_list_str = program.insert_data_user()
         found_plts = []
         activity_id = 1
+
+        for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
+            for file in files:
+                # Debugging pourposes
+                if file in "dataset/Data/010/Trajectory/20080926104408.plt":
+                    program.fetch_data("Activity")
+                    program.fetch_data("TrackPoint")
+                    return
+                currentFile = os.path.join(root, file)
+                f = currentFile.split("\\")
+                # Not a Trajectory directory
+                if "Trajectory" in f:
+                    try:
+                        filename = currentFile.replace("\\", "/").split("/")
+                        start_time = filename[4]
+                        start_time = start_time[:4] + "/" +start_time[4:]
+                        start_time = start_time[:7] + '/' + start_time[7:]
+                        start_time = start_time[:10] + ' ' + start_time[10:]
+                        start_time = start_time[:13] + ':' + start_time[13:]
+                        start_time = start_time[:16] + ':' + start_time[16:]
+                        start_time = start_time.replace(".plt", "")
+                        #print("Start:", start_time)
+                        with open(currentFile, "r") as trackpoints:
+                            for line in trackpoints:
+                                pass
+                        last = line
+                        last_line = last.split(",")
+                        end_time = last_line[5] + " " + last_line[6]
+                        end_time = end_time.replace("\n", "").replace("-", "/")
+                        #print("End:", end_time)
+                        try:
+                            line = check_labels(root, start_time, end_time)
+                            print(line)
+                            if line != -1:
+                                print("Found")
+                                with open(os.path.join(root).replace("Trajectory", "labels.txt"), "r") as csvfile:
+                                    csv_data = csv.reader(csvfile, delimiter='\t')
+                                    user_id = get_user(os.path.join(root))
+                                    index = 1
+                                    for row in csv_data:
+                                        if index == line:
+                                            print("FOund line:", row)
+                                            program.insert_data_activity_test(user_id, row)
+                                        index = index + 1
+                        except Exception as e:
+                            print(e)
+                            pass
+
+                        with open(os.path.join(root + "/Trajectory/", ).replace("\\", "/"), 'r') as f:
+                            for line in f:
+                                pass
+                            last_line = line
+                        print(start_time)
+                        path = os.path.join(root + "/Trajectory/", start_time)
+                        last = last_line.split(",")
+                        end_time = last[5] + " " + last[6]
+                        end_time = end_time.replace("\n", "").replace("-", "/")
+                        print("End:", end_time, ", Row:", row[1], "#")
+                        if end_time == row[1]:
+                            print("Found")
+                            found_plts.append(path)
+                    except Exception:
+                        pass
+
+        return
 
         for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
             for file in files:
