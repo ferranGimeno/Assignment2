@@ -188,7 +188,7 @@ def main():
         try:
             open("fscsd.txt")
         except Exception:
-            print("error")
+            pass
 
 
         for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
@@ -200,15 +200,21 @@ def main():
                     print(f[1])
                     #Not a Trajectory directory
                     if not "Trajectory" in f:
-                        """with open(currentFile) as csvfile:
+                        with open(currentFile) as csvfile:
                             csvfile.readline()
                             csv_data = csv.reader(csvfile, delimiter='\t')
                             for row in csv_data:
                                 print(row)
-                                program.insert_data_activity(row, f[1])"""
+                                start_time = row[0].replace("/", "")
+                                start_time = start_time.replace(" ", )
+                                #Abrir fichero .plt con el nombre de start_time
+                                #Si coincide, abrir y si existe, mirar la ultima linea
+                                #Si coincide, se reabre el fichero y se guarda primero la Activity y se guardan los TrakPoint
+                                #print(row)
+                                #program.insert_data_activity(row, f[1])
                     #Thats a Trajectory directory
                     else:
-                        program.insert_data_activity_test(f[1])
+                        """program.insert_data_activity_test(f[1])
                         csv_file = open(currentFile)
                         nLines = len(list(csv_file)) - 6
                         print(nLines)
@@ -227,7 +233,7 @@ def main():
                                     #print(activity_id)
                                     #program.insert_data_trackpoint(row)
                                     program.insert_data_trackpoint_test(activity_id)
-                        activity_id = activity_id + 1
+                        activity_id = activity_id + 1"""
 
         """for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
             for dir in dirs:
