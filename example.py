@@ -114,8 +114,8 @@ class ExampleProgram:
         query = "SELECT * FROM %s"
         self.cursor.execute(query % table_name)
         rows = self.cursor.fetchall()
-        print("Data from table %s, raw format:" % table_name)
-        print(rows)
+        # print("Data from table %s, raw format:" % table_name)
+        # print(rows)
         # Using tabulate to show the table in a nice way
         print("Data from table %s, tabulated:" % table_name)
         print(tabulate(rows, headers=self.cursor.column_names))
@@ -160,7 +160,7 @@ class ExampleProgram:
 
         return real_plts
 
-    def insert_data_activity_tuple(self, tuple, user_id):
+    def insert_labeled_data_activity_tuple(self, tuple):
         str_tuple = str(tuple)
         str_tuple_1 = str_tuple[1:len(str_tuple)-1]
         str_tuple_2 = str_tuple[1:len(str_tuple)-2]
@@ -168,9 +168,13 @@ class ExampleProgram:
             query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES " + str_tuple_1
         elif str_tuple[len(str_tuple_1)] == ",":
             query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES " + str_tuple_2
-        else:
-            query = "INSERT INTO Activity (user_id, start_date_time, end_date_time, transportation_mode) VALUES ((SELECT id from User where has_labels = 0 order by id limit 1), Null, Null, Null)"
-        # print(query)
+        print(query)
+        self.cursor.execute(query)
+        self.db_connection.commit()
+
+    def insert_not_labeled_data_activity_tuple(self, user_id):
+        query = "INSERT INTO Activity (user_id) (SELECT id FROM User WHERE has_labels = 0)"
+        print(query)
         self.cursor.execute(query)
         self.db_connection.commit()
 
@@ -200,11 +204,13 @@ def main():
                             csv_data = csv.reader(csvfile, delimiter='\t')
                             csv_list = [(dir,) + tuple(line) for line in csv_data]
                             csv_tuple = tuple(csv_list)
-                            program.insert_data_activity_tuple(csv_tuple, dir)
+                            program.insert_labeled_data_activity_tuple(csv_tuple)
 
-                    # else:
-                    #     csv_tuple = ((dir,) +("Null", "Null", "Null"))
-                    #     program.insert_data_activity_tuple(csv_tuple, dir)
+
+
+        program.insert_not_labeled_data_activity_tuple(dir)
+
+
 
         # activity = program.fetch_data_2(table_name="Activity")
         # possible_plts = program.show_possible_plts(activity)
