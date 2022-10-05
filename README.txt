@@ -1,16 +1,3 @@
-Tables:
-Data from table User, tabulated:
-id    has_labels
-----  ------------
-
-Data from table Activity, tabulated:
-id    user_id    transportation_mode    start_date_time    end_date_time
-----  ---------  ---------------------  -----------------  ---------------
-
-Data from table TrackPoint, tabulated:
-id    activity_id    lat    lon    altitude    date_days    date_time
-----  -------------  -----  -----  ----------  -----------  -----------
-
 1. How many users, activities and trackpoints are there in the dataset (after it is
 inserted into the database).
 SELECT COUNT(*) FROM User
@@ -21,7 +8,12 @@ SELECT COUNT(*) FROM TrackPoint
 SELECT AVG(*) FROM User as u, Activity as a WHERE u.id = a.userid
 
 3. Find the top 20 users with the highest number of activities.
-SELECT u.id FROM x WHERE x LIMIT 20 ASC
+SELECT u.id
+FROM User AS u, Activity AS a
+WHERE u.id = a.user_id
+GROUP BY u.id
+ORDER BY COUNT (a.id) DESC
+LIMIT 20
 
 4. Find all users who have taken a taxi.
 SELECT u.id FROM User as u, Activity as a WHERE u.id = a.user_id AND a.transportation_mode LIKE "taxi"
