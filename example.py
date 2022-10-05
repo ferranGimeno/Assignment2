@@ -223,7 +223,7 @@ def get_user(param):
         self.db_connection.commit()
 
     def update_trackpoint_tuple(self):
-        query = "UPDATE TrackPoint, Activity SET TrackPoint.activity_id = Activity.id WHERE TrackPoint.date_time < Activity.end_date_time and TrackPoint.date_time > Activity.start_date_time"
+        query = "UPDATE TrackPoint, Activity SET TrackPoint.activity_id = Activity.id WHERE TrackPoint.date_time < Activity.end_date_time and TrackPoint.date_time > Activity.start_date_time and TrackPoint.activity_id"
         # print(query)
         self.cursor.execute(query)
         self.db_connection.commit()
@@ -234,11 +234,9 @@ def main():
     program = None
     try:
         program = ExampleProgram()
-
-        program.drop_table(table_name="User")
-        program.drop_table(table_name="Activity")
         program.drop_table(table_name="TrackPoint")
-
+        program.drop_table(table_name="Activity")
+        program.drop_table(table_name="User")
 
 
         program.create_table_user()
@@ -267,7 +265,7 @@ def main():
 
         for (root, dirs, files) in os.walk('dataset/Data', topdown=True):
             for file in files:
-                if "Trajectory" in root and "140" in root:
+                if "Trajectory" in root and "010" in root:
                     csv_file = open(root + "/" + file)
                     nLines = len(list(csv_file)) + 1
                     if nLines <= 2500:
@@ -278,7 +276,6 @@ def main():
                             csv_list = [tuple([line[0], line[1], line[3], line[4],line[5]+" "+line[6]]) for line in csv_data]
                             csv_tuple = tuple(csv_list)
                             program.insert_data_trackpoint_tuple(csv_tuple)
-
         program.update_trackpoint_tuple()
 
 
