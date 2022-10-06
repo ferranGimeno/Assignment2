@@ -346,12 +346,23 @@ class ExampleProgram:
             users_gained_altitude.append([gained_altitude_feet,j])
             gained_altitude_feet = 0
         top_20_users_gained_altitude = sorted(users_gained_altitude)[len(users_gained_altitude)-20:len(users_gained_altitude)]
-        # print(top_20_users_gained_altitude)
 
         print("\n")
         print("Top 20 users:\n")
         for i in range(len(top_20_users_gained_altitude)):
             print("User:",top_20_users_gained_altitude[i][1], "gained altitude:", ("%.2f" % (top_20_users_gained_altitude[i][0]*0.3048)), "meters")
+        print("\n")
+
+    def query_9(self):
+        print("Query 9...")
+        invalid_trackpoints = []
+        invalid_activities = []
+        query_9 = "WITH Dif AS (SELECT user_id, activity_id, date_days, LEAD(date_days) OVER(ORDER BY date_days) as next_date FROM TrackPoint JOIN Activity ON TrackPoint.activity_id = Activity.id) SELECT user_id, count(DISTINCT activity_id) FROM Dif WHERE next_date - date_days > 0.03472 and activity_id IS NOT NULL GROUP BY user_id ORDER BY user_id"
+        self.cursor.execute(query_9)
+        rows_9 = self.cursor.fetchall()
+        print(tabulate(rows_9, headers=self.cursor.column_names))
+
+
         print("\n")
 
     def query_10(self):
@@ -421,7 +432,8 @@ def main():
         # program.query_6a()
         # program.query_6b()
         # program.query_7()
-        program.query_8()
+        # program.query_8()
+        program.query_9()
         # program.query_10()
         # program.query_11()
 
