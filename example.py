@@ -190,6 +190,106 @@ class ExampleProgram:
                             data = data[:-1]
                             self.insert_data_trackpoint_test(data)
                         activity_id = activity_id + 1
+
+    def query_1(self):
+        print("Query 1...")
+
+        query_1_1 = "SELECT COUNT(*) FROM User"
+        self.cursor.execute(query_1_1)
+        rows_1_1 = self.cursor.fetchall()
+        print(tabulate(rows_1_1, headers=self.cursor.column_names))
+
+        query_1_2 = "SELECT COUNT(*) FROM Activity"
+        self.cursor.execute(query_1_2)
+        rows_1_2 = self.cursor.fetchall()
+        print(tabulate(rows_1_2, headers=self.cursor.column_names))
+
+        query_1_3 = "SELECT COUNT(*) FROM TrackPoint"
+        self.cursor.execute(query_1_3)
+        rows_1_3 = self.cursor.fetchall()
+        print(tabulate(rows_1_3, headers=self.cursor.column_names))
+
+        print("\n")
+
+    def query_2(self):
+        print("Query 2...")
+
+        query_2 = "WITH Number AS (SELECT user_id, count(user_id) AS num_acts FROM Activity GROUP BY user_id) SELECT AVG(num_acts) FROM Number"
+        self.cursor.execute(query_2)
+        rows_2 = self.cursor.fetchall()
+        print(tabulate(rows_2, headers=self.cursor.column_names))
+
+
+        print("\n")
+
+    def query_3(self):
+        print("Query 3...")
+
+        query_3 = "SELECT user_id, count(user_id) FROM Activity GROUP BY user_id ORDER BY count(user_id) DESC LIMIT 20"
+        self.cursor.execute(query_3)
+        rows_3 = self.cursor.fetchall()
+        print(tabulate(rows_3, headers=self.cursor.column_names))
+
+
+        print("\n")
+
+    def query_4(self):
+        print("Query 4...")
+
+        query_4 = "SELECT user_id FROM Activity WHERE transportation_mode = 'taxi' GROUP BY user_id"
+        self.cursor.execute(query_4)
+        rows_4 = self.cursor.fetchall()
+        print(tabulate(rows_4, headers=self.cursor.column_names))
+
+
+        print("\n")
+
+    def query_5(self):
+        print("Query 5...")
+
+        query_5 = "SELECT transportation_mode, count(*) FROM Activity WHERE transportation_mode IS NOT NULL GROUP BY transportation_mode"
+        self.cursor.execute(query_5)
+        rows_5 = self.cursor.fetchall()
+        print(tabulate(rows_5, headers=self.cursor.column_names))
+
+
+        print("\n")
+
+    def query_6a(self):
+        print("Query 6a...")
+
+        query_6a = "WITH Years AS (SELECT YEAR(start_date_time), count(id) AS num FROM Activity WHERE YEAR(start_date_time) IS NOT NULL GROUP BY YEAR(start_date_time)) SELECT * FROM Years ORDER BY num DESC LIMIT 1"
+        self.cursor.execute(query_6a)
+        rows_6a = self.cursor.fetchall()
+        print(tabulate(rows_6a, headers=self.cursor.column_names))
+
+
+        print("\n")
+
+
+    def query_10(self):
+        print("Query 10...")
+
+        query_10 = "SELECT user_id FROM TrackPoint JOIN Activity ON TrackPoint.activity_id = Activity.id WHERE SUBSTR(CAST(lat AS char),1,6) = '39.916' AND SUBSTR(CAST(lon AS char),1,7) = '116.397' GROUP BY user_id"
+        self.cursor.execute(query_10)
+        rows_10 = self.cursor.fetchall()
+        print(tabulate(rows_10, headers=self.cursor.column_names))
+
+
+        print("\n")
+
+    def query_11(self):
+        print("Query 11..")
+
+        query_11 = "WITH Top AS (SELECT user_id, transportation_mode, ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY COUNT(transportation_mode) DESC) rn FROM Activity WHERE transportation_mode IS NOT NULL GROUP BY user_id, transportation_mode) SELECT user_id, transportation_mode FROM Top WHERE rn = 1"
+        self.cursor.execute(query_11)
+        rows_11 = self.cursor.fetchall()
+        print(tabulate(rows_11, headers=self.cursor.column_names))
+
+
+        print("\n")
+
+
 def check_labels(root, start_time, end_time):
     index = 1
     with open(os.path.join(root).replace("Trajectory", "labels.txt"), "r") as labels:
@@ -210,21 +310,30 @@ def main():
     try:
         program = ExampleProgram()
 
-        program.drop_table(table_name="TrackPoint")
-        program.drop_table(table_name="Activity")
-        program.drop_table(table_name="User")
-
-        program.create_table_user()
-        program.create_table_activity()
-        program.create_table_trackpoint()
-
-        program.insert_data_user()
-        program.insert_data()
+        # program.drop_table(table_name="TrackPoint")
+        # program.drop_table(table_name="Activity")
+        # program.drop_table(table_name="User")
+        #
+        # program.create_table_user()
+        # program.create_table_activity()
+        # program.create_table_trackpoint()
+        #
+        # program.insert_data_user()
+        # program.insert_data()
 
         # Check that the table is dropped
-        #_ = program.fetch_data(table_name="User")
-        #_ = program.fetch_data(table_name="Activity")
-        #_ = program.fetch_data(table_name="TrackPoint")
+        # _ = program.fetch_data(table_name="User")
+        # _ = program.fetch_data(table_name="Activity")
+        # _ = program.fetch_data(table_name="TrackPoint")
+
+        # program.query_1()
+        # program.query_2()
+        # program.query_3()
+        # program.query_4()
+        # program.query_5()
+        # program.query_6a()
+        # program.query_10()
+        # program.query_11()
 
         program.show_tables()
 
