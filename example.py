@@ -5,7 +5,9 @@ from wheel.wheelfile import read_csv
 from DbConnector import DbConnector
 from tabulate import tabulate
 from datetime import datetime
+from datetime import timedelta
 
+import geopy.distance
 import os
 import csv
 
@@ -266,6 +268,68 @@ class ExampleProgram:
 
         print("\n")
 
+    def query_6b(self):
+        diff_2007 = timedelta(seconds=0)
+        diff_2008 = timedelta(seconds=0)
+        diff_2009 = timedelta(seconds=0)
+        diff_2011 = timedelta(seconds=0)
+        print("Query 6b...")
+
+        query_6b = "SELECT YEAR(start_date_time), TIME(start_date_time), TIME(end_date_time) FROM Activity WHERE start_date_time IS NOT NULL ORDER BY YEAR(start_date_time)"
+        self.cursor.execute(query_6b)
+        rows_6b = self.cursor.fetchall()
+        for i in range(len(rows_6b)):
+            if rows_6b[i][0] == 2007:
+                start_time = datetime.strptime(str(rows_6b[i][1]), "%H:%M:%S")
+                end_time = datetime.strptime(str(rows_6b[i][2]), "%H:%M:%S")
+                diff_2007 += abs(end_time - start_time)
+
+            if rows_6b[i][0] == 2008:
+                start_time = datetime.strptime(str(rows_6b[i][1]), "%H:%M:%S")
+                end_time = datetime.strptime(str(rows_6b[i][2]), "%H:%M:%S")
+                diff_2008 += abs(end_time - start_time)
+
+            if rows_6b[i][0] == 2009:
+                start_time = datetime.strptime(str(rows_6b[i][1]), "%H:%M:%S")
+                end_time = datetime.strptime(str(rows_6b[i][2]), "%H:%M:%S")
+                diff_2009 += abs(end_time - start_time)
+
+            if rows_6b[i][0] == 2011:
+                start_time = datetime.strptime(str(rows_6b[i][1]), "%H:%M:%S")
+                end_time = datetime.strptime(str(rows_6b[i][2]), "%H:%M:%S")
+                diff_2011 += abs(end_time - start_time)
+
+        print("Hours in 2007:", diff_2007)
+        print("Hours in 2008:", diff_2008)
+        print("Hours in 2009:", diff_2009)
+        print("Hours in 2011:",diff_2011, "\n")
+
+        if diff_2008 > diff_2007 and diff_2008 > diff_2009 and diff_2008 > diff_2011:
+            print("Yes, 2008 is the year with the most recorded hours")
+        else:
+            print("No, 2008 is not the year with the most recorded hours")
+
+
+        print("\n")
+
+    def query_7(self):
+        print("Query 7...")
+        distance_km = 0.00
+        query_7 = "SELECT * FROM TrackPoint JOIN Activity ON TrackPoint.activity_id = Activity.id WHERE user_id = '113' AND transportation_mode = 'walk' AND YEAR(start_date_time) = '2008'"
+        self.cursor.execute(query_7)
+        rows_7 = self.cursor.fetchall()
+
+        for i in range(len(rows_7)):
+            if i+1 < len(rows_7):
+                coords_1 = (rows_7[i][2], rows_7[i][3])
+                coords_2 = (rows_7[i+1][2], rows_7[i+1][3])
+                distance_km += geopy.distance.geodesic(coords_1, coords_2).km
+        print("The total distance walked by the user with id = 112 in 2008 is:", ("%.2f" % distance_km), "km")
+
+        print("\n")
+
+
+
 
     def query_10(self):
         print("Query 10...")
@@ -332,6 +396,8 @@ def main():
         # program.query_4()
         # program.query_5()
         # program.query_6a()
+        # program.query_6b()
+        # program.query_7()
         # program.query_10()
         # program.query_11()
 
