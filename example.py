@@ -329,7 +329,30 @@ class ExampleProgram:
         print("\n")
 
 
+    def query_8(self):
+        print("Query 8...")
+        gained_altitude_feet = 0
+        users_gained_altitude = []
+        query_8 = "SELECT user_id, altitude FROM TrackPoint JOIN Activity ON TrackPoint.activity_id = Activity.id"
+        self.cursor.execute(query_8)
+        rows_8 = self.cursor.fetchall()
+        for j in range(1,183):
+            for i in range(len(rows_8)):
+                if i+1 < len(rows_8) and rows_8[i][0] == j and rows_8[i+1][0] == j:
+                    start_altitude = rows_8[i][1]
+                    end_altitude = rows_8[i+1][1]
+                    gained_altitude_feet += end_altitude - start_altitude
+            print("user:", j, ",gained altitude:", gained_altitude_feet, "feet")
+            users_gained_altitude.append([gained_altitude_feet,j])
+            gained_altitude_feet = 0
+        top_20_users_gained_altitude = sorted(users_gained_altitude)[len(users_gained_altitude)-20:len(users_gained_altitude)]
+        # print(top_20_users_gained_altitude)
 
+        print("\n")
+        print("Top 20 users:\n")
+        for i in range(len(top_20_users_gained_altitude)):
+            print("User:",top_20_users_gained_altitude[i][1], "gained altitude:", ("%.2f" % (top_20_users_gained_altitude[i][0]*0.3048)), "meters")
+        print("\n")
 
     def query_10(self):
         print("Query 10...")
@@ -398,6 +421,7 @@ def main():
         # program.query_6a()
         # program.query_6b()
         # program.query_7()
+        program.query_8()
         # program.query_10()
         # program.query_11()
 
